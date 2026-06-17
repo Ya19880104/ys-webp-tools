@@ -1,0 +1,455 @@
+/**
+ * YS WebP Tools — 後台樣式
+ *
+ * 使用 YANGSHEEP 標準莫蘭迪色系（--ys-adm-*）
+ *
+ * @since 1.0.0
+ */
+
+/* ── 莫蘭迪色系變數 ───────────────────────── */
+:root {
+    --ys-adm-bg: #f8fafb;
+    --ys-adm-card-bg: #ffffff;
+    --ys-adm-border: #e2e8ed;
+    --ys-adm-border-light: #edf1f4;
+    --ys-adm-text: #2c3e50;
+    --ys-adm-text-muted: #7b8a96;
+    --ys-adm-primary: #8fa8b8;
+    --ys-adm-primary-dark: #6b8a9a;
+    --ys-adm-primary-light: #b3c7d3;
+    --ys-adm-primary-bg: rgba(143, 168, 184, 0.1);
+    --ys-adm-success: #7dab8e;
+    --ys-adm-success-bg: #e8f3ec;
+    --ys-adm-warning: #c4a67a;
+    --ys-adm-warning-bg: #faf2e5;
+    --ys-adm-danger: #c08080;
+    --ys-adm-danger-bg: #f8e8e8;
+    --ys-adm-info-bg: #e8eff5;
+    --ys-adm-radius: 8px;
+    --ys-adm-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    --ys-adm-shadow-hover: 0 4px 16px rgba(107, 138, 154, 0.15);
+}
+
+/* ── Hero Header ──────────────────────────── */
+.ys-webp-hero {
+    background: linear-gradient(135deg, #8fa8b8 0%, #a8bcc8 50%, #b3c7d3 100%);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin: 12px 20px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(107, 138, 154, 0.25);
+}
+
+.ys-webp-hero-title {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ys-webp-hero-title .dashicons {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+}
+
+.ys-webp-hero-subtitle {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.ys-webp-version-badge {
+    background: rgba(255, 255, 255, 0.25);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+}
+
+/* ── 頁面容器 ─────────────────────────────── */
+.ys-webp-wrap {
+    max-width: 880px;
+    margin: 20px 0;
+    color: var(--ys-adm-text);
+    padding-bottom: 40px;
+}
+
+/* ── 頁籤 ─────────────────────────────────── */
+.ys-webp-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    border-bottom: 2px solid var(--ys-adm-border);
+    margin-bottom: 20px;
+}
+
+.ys-webp-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ys-adm-text-muted);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.ys-webp-tab .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.ys-webp-tab:hover {
+    color: var(--ys-adm-primary-dark);
+}
+
+.ys-webp-tab.is-active {
+    color: var(--ys-adm-primary-dark);
+    border-bottom-color: var(--ys-adm-primary);
+}
+
+/* ── 頁籤內容 ─────────────────────────────── */
+.ys-webp-panel {
+    display: none;
+}
+
+.ys-webp-panel.is-active {
+    display: block;
+}
+
+/* ── 卡片 ─────────────────────────────────── */
+.ys-webp-card {
+    background: var(--ys-adm-card-bg);
+    border: 1px solid var(--ys-adm-border);
+    border-radius: var(--ys-adm-radius);
+    box-shadow: var(--ys-adm-shadow);
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+.ys-webp-card h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--ys-adm-border-light);
+    color: var(--ys-adm-text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ys-webp-card h2 .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: var(--ys-adm-primary-dark);
+}
+
+.ys-webp-card-desc {
+    font-size: 13px;
+    color: var(--ys-adm-text-muted);
+    margin: 0 0 16px;
+}
+
+/* ── 設定列 ───────────────────────────────── */
+.ys-webp-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--ys-adm-border-light);
+}
+
+.ys-webp-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.ys-webp-row-main {
+    flex: 1;
+}
+
+.ys-webp-row-label {
+    display: block;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--ys-adm-text);
+}
+
+.ys-webp-row-desc {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: var(--ys-adm-text-muted);
+}
+
+.ys-webp-row-control {
+    flex: 0 0 auto;
+}
+
+/* ── Toggle 開關 ──────────────────────────── */
+.ys-webp-toggle {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    cursor: pointer;
+}
+
+.ys-webp-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.ys-webp-toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: #cdd6dd;
+    border-radius: 24px;
+    transition: background 0.2s;
+}
+
+.ys-webp-toggle-slider::before {
+    content: "";
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.ys-webp-toggle input:checked + .ys-webp-toggle-slider {
+    background: var(--ys-adm-primary);
+}
+
+.ys-webp-toggle input:checked + .ys-webp-toggle-slider::before {
+    transform: translateX(20px);
+}
+
+.ys-webp-toggle-sm {
+    width: 38px;
+    height: 20px;
+}
+
+.ys-webp-toggle-sm .ys-webp-toggle-slider::before {
+    height: 14px;
+    width: 14px;
+}
+
+.ys-webp-toggle-sm input:checked + .ys-webp-toggle-slider::before {
+    transform: translateX(18px);
+}
+
+/* ── 輸入框 ───────────────────────────────── */
+.ys-webp-input {
+    width: 120px;
+    padding: 8px 12px;
+    font-size: 13px;
+    border: 1px solid var(--ys-adm-border);
+    border-radius: var(--ys-adm-radius);
+    background: var(--ys-adm-card-bg);
+    color: var(--ys-adm-text);
+}
+
+.ys-webp-input:focus {
+    border-color: var(--ys-adm-primary);
+    box-shadow: 0 0 0 2px var(--ys-adm-primary-bg);
+    outline: none;
+}
+
+/* ── Range ────────────────────────────────── */
+.ys-webp-range-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ys-webp-range {
+    width: 180px;
+    accent-color: var(--ys-adm-primary);
+}
+
+.ys-webp-range-val {
+    display: inline-block;
+    min-width: 36px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--ys-adm-primary-dark);
+    background: var(--ys-adm-primary-bg);
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+/* ── 多選 ─────────────────────────────────── */
+.ys-webp-checks {
+    display: flex;
+    gap: 16px;
+}
+
+.ys-webp-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--ys-adm-text);
+}
+
+/* ── 尺寸表格 ─────────────────────────────── */
+.ys-webp-size-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.ys-webp-size-table th,
+.ys-webp-size-table td {
+    text-align: left;
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--ys-adm-border-light);
+}
+
+.ys-webp-size-table th {
+    font-size: 12px;
+    color: var(--ys-adm-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ys-webp-size-table code {
+    background: var(--ys-adm-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.ys-webp-source {
+    font-size: 12px;
+    color: var(--ys-adm-text-muted);
+}
+
+.ys-webp-col-toggle {
+    text-align: center;
+    width: 70px;
+}
+
+/* ── 提示框 ───────────────────────────────── */
+.ys-webp-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: var(--ys-adm-info-bg);
+    border-radius: var(--ys-adm-radius);
+    font-size: 12px;
+    color: var(--ys-adm-text);
+}
+
+.ys-webp-note .dashicons {
+    color: var(--ys-adm-primary-dark);
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+/* ── 說明文件 ─────────────────────────────── */
+.ys-webp-help h3 {
+    font-size: 14px;
+    margin: 20px 0 8px;
+    color: var(--ys-adm-text);
+}
+
+.ys-webp-help ul {
+    margin: 0 0 8px;
+    padding-left: 20px;
+    list-style: disc;
+}
+
+.ys-webp-help li {
+    font-size: 13px;
+    color: var(--ys-adm-text);
+    margin-bottom: 6px;
+    line-height: 1.6;
+}
+
+/* ── 儲存列 ───────────────────────────────── */
+.ys-webp-savebar {
+    margin-top: 12px;
+}
+
+.ys-webp-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 24px;
+    border: none;
+    border-radius: var(--ys-adm-radius);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ys-webp-btn .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.ys-webp-btn-primary {
+    background: var(--ys-adm-primary);
+    color: #fff;
+}
+
+.ys-webp-btn-primary:hover {
+    background: var(--ys-adm-primary-dark);
+}
+
+.ys-webp-btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── 浮動通知 ─────────────────────────────── */
+.ys-webp-notice {
+    position: fixed;
+    top: 40px;
+    right: 20px;
+    z-index: 99999;
+    padding: 12px 20px;
+    border-radius: var(--ys-adm-radius);
+    font-size: 13px;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s;
+}
+
+.ys-webp-notice.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.ys-webp-notice--success { background: var(--ys-adm-success); }
+.ys-webp-notice--error { background: var(--ys-adm-danger); }
