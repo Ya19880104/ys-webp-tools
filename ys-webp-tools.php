@@ -3,7 +3,7 @@
  * Plugin Name: YS WebP Tools
  * Plugin URI:  https://yangsheep.com.tw
  * Description: 圖片優化工具 — 上傳自動轉 WebP、自動縮圖、關閉不需要的縮圖尺寸。
- * Version:     1.1.0
+ * Version:     1.2.0
  * Author:      YANGSHEEP DESIGN
  * Author URI:  https://yangsheep.com.tw
  * License:     GPL-2.0-or-later
@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
 /* ──────────────────────────────────────────────
  * 常數定義
  * ────────────────────────────────────────────── */
-define( 'YS_WEBP_TOOLS_VERSION', '1.1.0' );
+define( 'YS_WEBP_TOOLS_VERSION', '1.2.0' );
 define( 'YS_WEBP_TOOLS_PLUGIN_FILE', __FILE__ );
 define( 'YS_WEBP_TOOLS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'YS_WEBP_TOOLS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

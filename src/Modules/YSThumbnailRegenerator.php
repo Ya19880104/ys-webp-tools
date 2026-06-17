@@ -2,10 +2,11 @@
 /**
  * 批次重新產生縮圖（既有圖片）
  *
- * 套用「縮圖尺寸管理」的停用設定到既有媒體庫：刪除停用尺寸已產生的舊縮圖檔，
- * 並依目前啟用的尺寸重建。由後台手動觸發、AJAX 分批執行（不依賴 Action Scheduler）。
+ * 兩種模式：
+ * - cleanup：只刪除「停用尺寸」的舊縮圖檔並從 metadata 移除，保留啟用尺寸的既有檔不動（最安全、最快）。
+ * - rebuild：刪除全部縮圖後依目前啟用尺寸重建（會補產生缺失的尺寸）。
  *
- * 核心邏輯參考 plugins-reference/image-sizes/app/Controllers/Common/Thumbnails.php
+ * 由後台手動觸發、AJAX 分批執行（不依賴 Action Scheduler）。
  *
  * @package YangSheep\WebpTools\Modules
  * @since   1.1.0
@@ -13,11 +14,13 @@
 
 namespace YangSheep\WebpTools\Modules;
 
+use YangSheep\WebpTools\Settings\YSSettingKeys;
+
 defined( 'ABSPATH' ) || exit;
 
 class YSThumbnailRegenerator {
 
-    /** 每批處理張數（重建較重，批次小以免逾時） */
+    /** 每批處理張數 */
     public const BATCH_SIZE = 10;
 
     /**
@@ -62,14 +65,11 @@ class YSThumbnailRegenerator {
     /**
      * 重新產生單一附件的縮圖
      *
-     * 先刪除舊縮圖檔（保留主檔與 SVG），再以 wp_generate_attachment_metadata 重建。
-     * 重建時會套用 intermediate_image_sizes_advanced filter（即停用設定），
-     * 故停用的尺寸不會再被產生。
-     *
-     * @param int $id 附件 ID
+     * @param int    $id   附件 ID
+     * @param string $mode 'cleanup' | 'rebuild'
      * @return array{skipped:bool, deleted:int, created:int}
      */
-    public static function regenerate_one( int $id ): array {
+    public static function regenerate_one( int $id, string $mode = 'rebuild' ): array {
         require_once ABSPATH . 'wp-admin/includes/image.php';
 
         $result = [ 'skipped' => false, 'deleted' => 0, 'created' => 0 ];
@@ -80,12 +80,42 @@ class YSThumbnailRegenerator {
             return $result;
         }
 
-        $old = wp_get_attachment_metadata( $id );
-        $dir = trailingslashit( dirname( $main ) );
+        $meta = wp_get_attachment_metadata( $id );
+        $dir  = trailingslashit( dirname( $main ) );
 
-        // 刪除舊縮圖檔（保留主檔；跳過 SVG）
-        if ( ! empty( $old['sizes'] ) && is_array( $old['sizes'] ) ) {
-            foreach ( $old['sizes'] as $size ) {
+        if ( 'cleanup' === $mode ) {
+            // 只刪停用尺寸：保留啟用尺寸的既有檔不動 → 啟用尺寸 URL 絕不改變
+            $disabled = (array) YSSettingKeys::get( YSSettingKeys::DISABLED_SIZES );
+            if ( empty( $disabled ) || empty( $meta['sizes'] ) || ! is_array( $meta['sizes'] ) ) {
+                return $result;
+            }
+            $changed = false;
+            foreach ( $meta['sizes'] as $name => $size ) {
+                if ( ! in_array( $name, $disabled, true ) ) {
+                    continue;
+                }
+                if ( isset( $size['mime-type'] ) && 'image/svg+xml' === $size['mime-type'] ) {
+                    continue;
+                }
+                if ( ! empty( $size['file'] ) ) {
+                    $path = $dir . $size['file'];
+                    if ( file_exists( $path ) && $path !== $main ) {
+                        wp_delete_file( $path );
+                        ++$result['deleted'];
+                    }
+                }
+                unset( $meta['sizes'][ $name ] );
+                $changed = true;
+            }
+            if ( $changed ) {
+                wp_update_attachment_metadata( $id, $meta );
+            }
+            return $result;
+        }
+
+        // rebuild：刪除全部舊縮圖（保留主檔、跳過 SVG）後重建
+        if ( ! empty( $meta['sizes'] ) && is_array( $meta['sizes'] ) ) {
+            foreach ( $meta['sizes'] as $size ) {
                 if ( empty( $size['file'] ) ) {
                     continue;
                 }
@@ -100,7 +130,6 @@ class YSThumbnailRegenerator {
             }
         }
 
-        // 重建（依目前啟用的尺寸）
         $new = wp_generate_attachment_metadata( $id, $main );
         if ( is_array( $new ) ) {
             wp_update_attachment_metadata( $id, $new );

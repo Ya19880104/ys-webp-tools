@@ -1,9 +1,9 @@
 <?php
 /**
- * AJAX 處理器 — 儲存設定 + 批次重新產生縮圖
+ * AJAX 處理器 — 儲存設定 + 批次重新產生縮圖 + 內容圖片網址修復
  *
  * 儲存以 JSON 傳輸（精確保留 bool/int/array 型別），後端依 schema 逐項白名單清理。
- * 批次重生以 offset 分頁、前端輪詢驅動（不依賴 Action Scheduler）。
+ * 批次作業以 offset 分頁、前端輪詢驅動（不依賴 Action Scheduler）。內容修復預設 dry-run。
  *
  * @package YangSheep\WebpTools\Admin
  * @since   1.0.0
@@ -14,6 +14,7 @@ namespace YangSheep\WebpTools\Admin;
 use YangSheep\WebpTools\Database\YSWebpToolsSettingsRepo;
 use YangSheep\WebpTools\Modules\YSThumbnailManager;
 use YangSheep\WebpTools\Modules\YSThumbnailRegenerator;
+use YangSheep\WebpTools\Modules\YSContentUrlReplacer;
 use YangSheep\WebpTools\Settings\YSSettingKeys;
 
 defined( 'ABSPATH' ) || exit;
@@ -23,6 +24,7 @@ class YSWebpToolsAjaxHandler {
     public function __construct() {
         add_action( 'wp_ajax_ys_webp_tools_save_settings', [ $this, 'save_settings' ] );
         add_action( 'wp_ajax_ys_webp_tools_regen_thumbs', [ $this, 'regen_thumbs' ] );
+        add_action( 'wp_ajax_ys_webp_tools_content_urls', [ $this, 'content_urls' ] );
     }
 
     /**
@@ -63,14 +65,18 @@ class YSWebpToolsAjaxHandler {
     }
 
     /**
-     * 批次重新產生縮圖（AJAX，offset 分頁）
+     * 批次重新產生縮圖（AJAX，offset 分頁，cleanup / rebuild 兩模式）
      */
     public function regen_thumbs(): void {
         $this->guard();
 
         $offset = isset( $_POST['offset'] ) ? absint( wp_unslash( $_POST['offset'] ) ) : 0;
-        $total  = YSThumbnailRegenerator::count_images();
+        $mode   = isset( $_POST['mode'] ) ? sanitize_key( wp_unslash( $_POST['mode'] ) ) : 'rebuild';
+        if ( ! in_array( $mode, [ 'cleanup', 'rebuild' ], true ) ) {
+            $mode = 'rebuild';
+        }
 
+        $total = YSThumbnailRegenerator::count_images();
         if ( 0 === $total ) {
             wp_send_json_success( [
                 'total'       => 0,
@@ -86,7 +92,7 @@ class YSWebpToolsAjaxHandler {
         $deleted = 0;
         $created = 0;
         foreach ( $ids as $id ) {
-            $r        = YSThumbnailRegenerator::regenerate_one( $id );
+            $r        = YSThumbnailRegenerator::regenerate_one( $id, $mode );
             $deleted += $r['deleted'];
             $created += $r['created'];
         }
@@ -101,6 +107,75 @@ class YSWebpToolsAjaxHandler {
             'created'     => $created,
             'done'        => $done,
             'next_offset' => $processed,
+        ] );
+    }
+
+    /**
+     * 內容圖片網址修復（AJAX，offset 分頁；預設 dry-run 預覽，dry=0 才實際替換）
+     */
+    public function content_urls(): void {
+        $this->guard();
+
+        $offset = isset( $_POST['offset'] ) ? absint( wp_unslash( $_POST['offset'] ) ) : 0;
+        // 預設 dry-run；僅當明確傳 dry=0 才執行替換
+        $dry = ! ( isset( $_POST['dry'] ) && '0' === (string) wp_unslash( $_POST['dry'] ) );
+
+        $total = YSContentUrlReplacer::count_posts();
+        if ( 0 === $total ) {
+            wp_send_json_success( [
+                'total'          => 0,
+                'processed'      => 0,
+                'affected_posts' => 0,
+                'url_count'      => 0,
+                'samples'        => [],
+                'done'           => true,
+                'next_offset'    => 0,
+                'dry'            => $dry,
+            ] );
+        }
+
+        $ids       = YSContentUrlReplacer::get_batch_ids( $offset, YSContentUrlReplacer::BATCH_SIZE );
+        $affected  = 0;
+        $url_count = 0;
+        $samples   = [];
+        foreach ( $ids as $id ) {
+            if ( $dry ) {
+                $plan = YSContentUrlReplacer::scan_post( $id );
+                if ( ! empty( $plan ) ) {
+                    ++$affected;
+                    $url_count += count( $plan );
+                    foreach ( $plan as $p ) {
+                        if ( count( $samples ) >= 5 ) {
+                            break;
+                        }
+                        $samples[] = [
+                            'post' => $id,
+                            'old'  => $p['old'],
+                            'new'  => $p['new'],
+                        ];
+                    }
+                }
+            } else {
+                $n = YSContentUrlReplacer::replace_post( $id );
+                if ( $n > 0 ) {
+                    ++$affected;
+                    $url_count += $n;
+                }
+            }
+        }
+
+        $processed = $offset + count( $ids );
+        $done      = ( 0 === count( $ids ) ) || ( $processed >= $total );
+
+        wp_send_json_success( [
+            'total'          => $total,
+            'processed'      => min( $processed, $total ),
+            'affected_posts' => $affected,
+            'url_count'      => $url_count,
+            'samples'        => $samples,
+            'done'           => $done,
+            'next_offset'    => $processed,
+            'dry'            => $dry,
         ] );
     }
 

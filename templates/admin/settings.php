@@ -49,6 +49,7 @@ $max_height   = (int) ( $s[ YSSettingKeys::RESIZE_MAX_HEIGHT ] ?? 0 );
         <a href="#" class="ys-webp-tab" data-tab="webp"><span class="dashicons dashicons-format-image"></span> <?php echo esc_html__( 'WebP 轉換', 'ys-webp-tools' ); ?></a>
         <a href="#" class="ys-webp-tab" data-tab="resize"><span class="dashicons dashicons-editor-expand"></span> <?php echo esc_html__( '自動縮圖', 'ys-webp-tools' ); ?></a>
         <a href="#" class="ys-webp-tab" data-tab="sizes"><span class="dashicons dashicons-screenoptions"></span> <?php echo esc_html__( '縮圖尺寸管理', 'ys-webp-tools' ); ?></a>
+        <a href="#" class="ys-webp-tab" data-tab="tools"><span class="dashicons dashicons-images-alt2"></span> <?php echo esc_html__( '既有圖片工具', 'ys-webp-tools' ); ?></a>
         <a href="#" class="ys-webp-tab" data-tab="help"><span class="dashicons dashicons-book"></span> <?php echo esc_html__( '說明文件', 'ys-webp-tools' ); ?></a>
     </nav>
 
@@ -179,6 +180,15 @@ $max_height   = (int) ( $s[ YSSettingKeys::RESIZE_MAX_HEIGHT ] ?? 0 );
             <h2><span class="dashicons dashicons-screenoptions"></span> <?php echo esc_html__( '縮圖尺寸管理', 'ys-webp-tools' ); ?></h2>
             <p class="ys-webp-card-desc"><?php echo esc_html__( '以下為本站偵測到的縮圖尺寸。勾選「停用」後，未來上傳的圖片將不再產生該尺寸的縮圖，節省磁碟空間。', 'ys-webp-tools' ); ?></p>
 
+            <div class="ys-webp-toolbar">
+                <span class="ys-webp-toolbar-label"><?php echo esc_html__( '一鍵全部尺寸', 'ys-webp-tools' ); ?></span>
+                <label class="ys-webp-toggle ys-webp-toggle-sm">
+                    <input type="checkbox" id="ys-webp-toggle-all-sizes">
+                    <span class="ys-webp-toggle-slider"></span>
+                </label>
+                <span class="ys-webp-toolbar-hint"><?php echo esc_html__( '開＝全部停用、關＝全部啟用', 'ys-webp-tools' ); ?></span>
+            </div>
+
             <table class="ys-webp-size-table">
                 <thead>
                     <tr>
@@ -186,13 +196,7 @@ $max_height   = (int) ( $s[ YSSettingKeys::RESIZE_MAX_HEIGHT ] ?? 0 );
                         <th><?php echo esc_html__( '尺寸（寬 × 高）', 'ys-webp-tools' ); ?></th>
                         <th><?php echo esc_html__( '裁切', 'ys-webp-tools' ); ?></th>
                         <th><?php echo esc_html__( '來源', 'ys-webp-tools' ); ?></th>
-                        <th class="ys-webp-col-toggle">
-                            <?php echo esc_html__( '停用', 'ys-webp-tools' ); ?>
-                            <label class="ys-webp-toggle ys-webp-toggle-sm ys-webp-toggle-all" title="<?php echo esc_attr__( '全部停用／全部啟用', 'ys-webp-tools' ); ?>">
-                                <input type="checkbox" id="ys-webp-toggle-all-sizes">
-                                <span class="ys-webp-toggle-slider"></span>
-                            </label>
-                        </th>
+                        <th class="ys-webp-col-toggle"><?php echo esc_html__( '停用', 'ys-webp-tools' ); ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -212,42 +216,75 @@ $max_height   = (int) ( $s[ YSSettingKeys::RESIZE_MAX_HEIGHT ] ?? 0 );
                     <?php endforeach; ?>
                 </tbody>
             </table>
-
-            <!-- 套用到既有圖片：批次重新產生 -->
-            <div class="ys-webp-regen">
-                <h3 class="ys-webp-regen-title">
-                    <span class="dashicons dashicons-update"></span>
-                    <?php echo esc_html__( '套用到既有圖片', 'ys-webp-tools' ); ?>
-                </h3>
-                <p class="ys-webp-card-desc"><?php echo esc_html__( '停用尺寸只影響「新上傳」的圖片。若要清除既有圖片已產生的多餘縮圖，請先按上方「儲存設定」，再執行重新產生：會依目前啟用的尺寸重建，並刪除停用尺寸的舊縮圖檔。', 'ys-webp-tools' ); ?></p>
-                <div class="ys-webp-note ys-webp-note--warn">
-                    <span class="dashicons dashicons-warning"></span>
-                    <?php echo esc_html__( '此操作會變動既有媒體庫的縮圖檔（刪除後重建），無法復原，建議先備份。', 'ys-webp-tools' ); ?>
-                </div>
-                <button type="button" id="ys-webp-regen-btn" class="ys-webp-btn ys-webp-btn-secondary">
-                    <span class="dashicons dashicons-update"></span>
-                    <span class="ys-webp-btn-label"><?php echo esc_html__( '開始重新產生縮圖', 'ys-webp-tools' ); ?></span>
-                </button>
-                <div class="ys-webp-progress" id="ys-webp-regen-progress" style="display:none;">
-                    <div class="ys-webp-progress-bar"><span id="ys-webp-regen-fill"></span></div>
-                    <div class="ys-webp-progress-text" id="ys-webp-regen-text"></div>
-                </div>
-
-                <?php if ( class_exists( 'WooCommerce' ) ) : ?>
-                    <div class="ys-webp-wc-tip">
-                        <span class="dashicons dashicons-cart"></span>
-                        <span><?php
-                            printf(
-                                /* translators: %1$s 連結開頭標籤, %2$s 連結結尾標籤 */
-                                esc_html__( '偵測到 WooCommerce：商品圖建議改用 WooCommerce 內建的「重新產生縮圖」工具。%1$s前往 WooCommerce 工具 →%2$s', 'ys-webp-tools' ),
-                                '<a href="' . esc_url( admin_url( 'admin.php?page=wc-status&tab=tools' ) ) . '">',
-                                '</a>'
-                            );
-                        ?></span>
-                    </div>
-                <?php endif; ?>
-            </div>
         </div>
+    </div>
+
+    <!-- 既有圖片工具 -->
+    <div class="ys-webp-panel" data-panel="tools">
+
+        <!-- 批次重新產生縮圖 -->
+        <div class="ys-webp-card">
+            <h2><span class="dashicons dashicons-update"></span> <?php echo esc_html__( '重新產生縮圖（既有圖片）', 'ys-webp-tools' ); ?></h2>
+            <p class="ys-webp-card-desc"><?php echo esc_html__( '把「縮圖尺寸管理」的停用設定套用到既有圖片。請先到上一頁「儲存設定」。', 'ys-webp-tools' ); ?></p>
+            <div class="ys-webp-note ys-webp-note--warn">
+                <span class="dashicons dashicons-warning"></span>
+                <?php echo esc_html__( '此操作會變動既有媒體庫的縮圖檔，無法復原，建議先備份。', 'ys-webp-tools' ); ?>
+            </div>
+            <div class="ys-webp-btn-group">
+                <button type="button" id="ys-webp-regen-cleanup" data-mode="cleanup" class="ys-webp-btn ys-webp-btn-secondary">
+                    <span class="dashicons dashicons-trash"></span>
+                    <span class="ys-webp-btn-label"><?php echo esc_html__( '清理停用尺寸（建議）', 'ys-webp-tools' ); ?></span>
+                </button>
+                <button type="button" id="ys-webp-regen-rebuild" data-mode="rebuild" class="ys-webp-btn ys-webp-btn-secondary">
+                    <span class="dashicons dashicons-update"></span>
+                    <span class="ys-webp-btn-label"><?php echo esc_html__( '完整重建全部縮圖', 'ys-webp-tools' ); ?></span>
+                </button>
+            </div>
+            <p class="ys-webp-card-desc"><?php echo esc_html__( '清理＝只刪除停用尺寸的舊縮圖、保留其他不動（最安全、最快、不影響既有網址）；完整重建＝刪除全部縮圖再依設定重建（會補產生缺失的尺寸）。', 'ys-webp-tools' ); ?></p>
+            <div class="ys-webp-progress" id="ys-webp-regen-progress" style="display:none;">
+                <div class="ys-webp-progress-bar"><span id="ys-webp-regen-fill"></span></div>
+                <div class="ys-webp-progress-text" id="ys-webp-regen-text"></div>
+            </div>
+            <?php if ( class_exists( 'WooCommerce' ) ) : ?>
+                <div class="ys-webp-wc-tip">
+                    <span class="dashicons dashicons-cart"></span>
+                    <span><?php
+                        printf(
+                            /* translators: %1$s 連結開頭標籤, %2$s 連結結尾標籤 */
+                            esc_html__( '偵測到 WooCommerce：商品圖建議改用 WooCommerce 內建的「重新產生縮圖」工具。%1$s前往 WooCommerce 工具 →%2$s', 'ys-webp-tools' ),
+                            '<a href="' . esc_url( admin_url( 'admin.php?page=wc-status&tab=tools' ) ) . '">',
+                            '</a>'
+                        );
+                    ?></span>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- 內容圖片網址修復 -->
+        <div class="ys-webp-card">
+            <h2><span class="dashicons dashicons-admin-links"></span> <?php echo esc_html__( '內容圖片網址修復', 'ys-webp-tools' ); ?></h2>
+            <p class="ys-webp-card-desc"><?php echo esc_html__( '掃描文章／頁面內容，找出指向「已不存在檔案」的圖片網址（例如停用尺寸後被刪除的縮圖），替換成有效的圖片網址，修復破圖。', 'ys-webp-tools' ); ?></p>
+            <div class="ys-webp-note ys-webp-note--warn">
+                <span class="dashicons dashicons-warning"></span>
+                <?php echo esc_html__( '「執行替換」會修改文章內容（post_content），無法復原，建議先備份資料庫。請先「掃描預覽」確認後再執行。', 'ys-webp-tools' ); ?>
+            </div>
+            <div class="ys-webp-btn-group">
+                <button type="button" id="ys-webp-content-scan" class="ys-webp-btn ys-webp-btn-secondary">
+                    <span class="dashicons dashicons-search"></span>
+                    <span class="ys-webp-btn-label"><?php echo esc_html__( '掃描預覽', 'ys-webp-tools' ); ?></span>
+                </button>
+                <button type="button" id="ys-webp-content-replace" class="ys-webp-btn ys-webp-btn-primary" disabled>
+                    <span class="dashicons dashicons-yes"></span>
+                    <span class="ys-webp-btn-label"><?php echo esc_html__( '執行替換', 'ys-webp-tools' ); ?></span>
+                </button>
+            </div>
+            <div class="ys-webp-progress" id="ys-webp-content-progress" style="display:none;">
+                <div class="ys-webp-progress-bar"><span id="ys-webp-content-fill"></span></div>
+                <div class="ys-webp-progress-text" id="ys-webp-content-text"></div>
+            </div>
+            <div class="ys-webp-samples" id="ys-webp-content-samples" style="display:none;"></div>
+        </div>
+
     </div>
 
     <!-- 說明文件 -->
@@ -265,7 +302,8 @@ $max_height   = (int) ( $s[ YSSettingKeys::RESIZE_MAX_HEIGHT ] ?? 0 );
                 <li><?php echo esc_html__( '本外掛只處理「啟用後新上傳」的圖片，不會變動既有媒體庫。', 'ys-webp-tools' ); ?></li>
                 <li><?php echo esc_html__( '「取代原檔」會刪除原始 JPG/PNG，無法復原；若需保留請開啟「保留原始檔」。', 'ys-webp-tools' ); ?></li>
                 <li><?php echo esc_html__( 'WebP 轉換需要伺服器支援 GD 或 Imagick 的 WebP 功能。', 'ys-webp-tools' ); ?></li>
-                <li><?php echo esc_html__( '支援 JPG／JPEG／PNG（GIF 選配）。「縮圖尺寸管理」可用表頭開關一鍵全部停用／啟用，並用「套用到既有圖片」批次重新產生既有圖片的縮圖。', 'ys-webp-tools' ); ?></li>
+                <li><?php echo esc_html__( '支援 JPG／JPEG／PNG（GIF 選配）。「縮圖尺寸管理」可一鍵全部停用／啟用。', 'ys-webp-tools' ); ?></li>
+                <li><strong><?php echo esc_html__( '既有圖片工具', 'ys-webp-tools' ); ?></strong>：<?php echo esc_html__( '「清理停用尺寸」只刪除停用尺寸的舊縮圖（最安全）；「完整重建」重建全部縮圖；「內容圖片網址修復」掃描並修復文章內指向已刪除檔案的破圖網址（先預覽再執行）。', 'ys-webp-tools' ); ?></li>
             </ul>
         </div>
     </div>

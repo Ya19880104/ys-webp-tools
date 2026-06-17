@@ -554,3 +554,69 @@
     font-weight: 600;
     text-decoration: none;
 }
+
+/* ── 縮圖管理工具列（一鍵全關）────────────── */
+.ys-webp-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    background: var(--ys-adm-bg);
+    border-radius: var(--ys-adm-radius);
+}
+
+.ys-webp-toolbar-label {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--ys-adm-text);
+}
+
+.ys-webp-toolbar-hint {
+    font-size: 12px;
+    color: var(--ys-adm-text-muted);
+}
+
+/* ── 按鈕群組 ─────────────────────────────── */
+.ys-webp-btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 16px 0 8px;
+}
+
+/* ── 內容修復預覽 ─────────────────────────── */
+.ys-webp-samples {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: var(--ys-adm-bg);
+    border: 1px solid var(--ys-adm-border-light);
+    border-radius: var(--ys-adm-radius);
+}
+
+.ys-webp-samples-title {
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 8px;
+    color: var(--ys-adm-text);
+}
+
+.ys-webp-samples ul {
+    margin: 0;
+    padding-left: 18px;
+    list-style: disc;
+}
+
+.ys-webp-samples li {
+    font-size: 12px;
+    margin-bottom: 6px;
+    word-break: break-all;
+    color: var(--ys-adm-text-muted);
+}
+
+.ys-webp-samples code {
+    background: #fff;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 11px;
+}
