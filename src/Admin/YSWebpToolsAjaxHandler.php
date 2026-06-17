@@ -1,9 +1,9 @@
 <?php
 /**
- * AJAX 處理器 — 儲存設定
+ * AJAX 處理器 — 儲存設定 + 批次重新產生縮圖
  *
- * 以 JSON 傳輸設定（精確保留 bool/int/array 型別），
- * 後端依 schema 逐項白名單清理後存入自訂資料表。
+ * 儲存以 JSON 傳輸（精確保留 bool/int/array 型別），後端依 schema 逐項白名單清理。
+ * 批次重生以 offset 分頁、前端輪詢驅動（不依賴 Action Scheduler）。
  *
  * @package YangSheep\WebpTools\Admin
  * @since   1.0.0
@@ -13,6 +13,7 @@ namespace YangSheep\WebpTools\Admin;
 
 use YangSheep\WebpTools\Database\YSWebpToolsSettingsRepo;
 use YangSheep\WebpTools\Modules\YSThumbnailManager;
+use YangSheep\WebpTools\Modules\YSThumbnailRegenerator;
 use YangSheep\WebpTools\Settings\YSSettingKeys;
 
 defined( 'ABSPATH' ) || exit;
@@ -21,23 +22,27 @@ class YSWebpToolsAjaxHandler {
 
     public function __construct() {
         add_action( 'wp_ajax_ys_webp_tools_save_settings', [ $this, 'save_settings' ] );
+        add_action( 'wp_ajax_ys_webp_tools_regen_thumbs', [ $this, 'regen_thumbs' ] );
+    }
+
+    /**
+     * 共用前置驗證（nonce + 權限）；失敗直接結束回應
+     */
+    private function guard(): void {
+        if ( ! check_ajax_referer( 'ys_webp_tools_nonce', 'nonce', false ) ) {
+            wp_send_json_error( [ 'message' => __( '安全驗證失敗', 'ys-webp-tools' ) ], 403 );
+        }
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( [ 'message' => __( '權限不足', 'ys-webp-tools' ) ], 403 );
+        }
     }
 
     /**
      * 儲存設定（AJAX）
      */
     public function save_settings(): void {
-        // Nonce 驗證
-        if ( ! check_ajax_referer( 'ys_webp_tools_nonce', 'nonce', false ) ) {
-            wp_send_json_error( [ 'message' => __( '安全驗證失敗', 'ys-webp-tools' ) ], 403 );
-        }
+        $this->guard();
 
-        // 權限驗證
-        if ( ! current_user_can( 'manage_options' ) ) {
-            wp_send_json_error( [ 'message' => __( '權限不足', 'ys-webp-tools' ) ], 403 );
-        }
-
-        // 取得 JSON 設定字串
         $json = isset( $_POST['settings'] ) ? wp_unslash( $_POST['settings'] ) : '';
         $raw  = is_string( $json ) ? json_decode( $json, true ) : null;
 
@@ -45,10 +50,8 @@ class YSWebpToolsAjaxHandler {
             wp_send_json_error( [ 'message' => __( '沒有收到設定資料', 'ys-webp-tools' ) ] );
         }
 
-        // 依 schema 白名單清理
         $clean = $this->sanitize_settings( $raw );
 
-        // 逐筆儲存
         foreach ( $clean as $key => $value ) {
             YSWebpToolsSettingsRepo::set( $key, $value );
         }
@@ -56,6 +59,48 @@ class YSWebpToolsAjaxHandler {
         wp_send_json_success( [
             'message'  => __( '設定已儲存', 'ys-webp-tools' ),
             'settings' => $clean,
+        ] );
+    }
+
+    /**
+     * 批次重新產生縮圖（AJAX，offset 分頁）
+     */
+    public function regen_thumbs(): void {
+        $this->guard();
+
+        $offset = isset( $_POST['offset'] ) ? absint( wp_unslash( $_POST['offset'] ) ) : 0;
+        $total  = YSThumbnailRegenerator::count_images();
+
+        if ( 0 === $total ) {
+            wp_send_json_success( [
+                'total'       => 0,
+                'processed'   => 0,
+                'deleted'     => 0,
+                'created'     => 0,
+                'done'        => true,
+                'next_offset' => 0,
+            ] );
+        }
+
+        $ids     = YSThumbnailRegenerator::get_batch_ids( $offset, YSThumbnailRegenerator::BATCH_SIZE );
+        $deleted = 0;
+        $created = 0;
+        foreach ( $ids as $id ) {
+            $r        = YSThumbnailRegenerator::regenerate_one( $id );
+            $deleted += $r['deleted'];
+            $created += $r['created'];
+        }
+
+        $processed = $offset + count( $ids );
+        $done      = ( 0 === count( $ids ) ) || ( $processed >= $total );
+
+        wp_send_json_success( [
+            'total'       => $total,
+            'processed'   => min( $processed, $total ),
+            'deleted'     => $deleted,
+            'created'     => $created,
+            'done'        => $done,
+            'next_offset' => $processed,
         ] );
     }
 

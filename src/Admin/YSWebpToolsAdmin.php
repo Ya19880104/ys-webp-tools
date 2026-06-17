@@ -223,9 +223,14 @@ class YSWebpToolsAdmin {
             'ajax_url' => admin_url( 'admin-ajax.php' ),
             'nonce'    => wp_create_nonce( 'ys_webp_tools_nonce' ),
             'i18n'     => [
-                'saving' => __( '儲存中…', 'ys-webp-tools' ),
-                'saved'  => __( '設定已儲存', 'ys-webp-tools' ),
-                'error'  => __( '儲存失敗，請重試', 'ys-webp-tools' ),
+                'saving'       => __( '儲存中…', 'ys-webp-tools' ),
+                'saved'        => __( '設定已儲存', 'ys-webp-tools' ),
+                'error'        => __( '儲存失敗，請重試', 'ys-webp-tools' ),
+                'regenConfirm' => __( '確定要重新產生所有既有圖片的縮圖嗎？此操作會刪除舊縮圖後重建，無法復原。', 'ys-webp-tools' ),
+                'regenBtn'     => __( '開始重新產生縮圖', 'ys-webp-tools' ),
+                'regenProg'    => __( '處理中 %1$d / %2$d…', 'ys-webp-tools' ),
+                'regenDone'    => __( '完成！已處理 %1$d 張，刪除 %2$d 個舊縮圖、建立 %3$d 個縮圖。', 'ys-webp-tools' ),
+                'regenEmpty'   => __( '媒體庫沒有圖片可處理。', 'ys-webp-tools' ),
             ],
         ] );
     }

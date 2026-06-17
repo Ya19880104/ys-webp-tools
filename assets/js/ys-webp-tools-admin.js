@@ -147,4 +147,101 @@
         } );
     } );
 
+    /**
+     * 縮圖尺寸：一鍵全部停用／啟用
+     */
+    $( document ).on( 'change', '#ys-webp-toggle-all-sizes', function () {
+        var checked = $( this ).is( ':checked' );
+        $( '[data-setting-array="disabled_sizes"]' ).prop( 'checked', checked );
+    } );
+
+    // 個別變更時同步「全部」開關狀態
+    $( document ).on( 'change', '[data-setting-array="disabled_sizes"]', function () {
+        var $items = $( '[data-setting-array="disabled_sizes"]' );
+        var allChecked = $items.length > 0 && $items.filter( ':checked' ).length === $items.length;
+        $( '#ys-webp-toggle-all-sizes' ).prop( 'checked', allChecked );
+    } );
+
+    /**
+     * 批次重新產生既有圖片縮圖（offset 分頁輪詢）
+     */
+    $( document ).on( 'click', '#ys-webp-regen-btn', function ( e ) {
+        e.preventDefault();
+        if ( ! window.confirm( ysWebpToolsAdmin.i18n.regenConfirm ) ) {
+            return;
+        }
+
+        var $btn = $( this );
+        var $label = $btn.find( '.ys-webp-btn-label' );
+        var origText = $label.text();
+        var $progress = $( '#ys-webp-regen-progress' );
+        var $fill = $( '#ys-webp-regen-fill' );
+        var $text = $( '#ys-webp-regen-text' );
+
+        var totalDeleted = 0;
+        var totalCreated = 0;
+
+        $btn.prop( 'disabled', true );
+        $progress.show();
+        $fill.css( 'width', '0%' );
+        $text.text( '' );
+
+        function finish() {
+            $btn.prop( 'disabled', false );
+            $label.text( origText );
+        }
+
+        function step( offset ) {
+            $.ajax( {
+                url: ysWebpToolsAdmin.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'ys_webp_tools_regen_thumbs',
+                    nonce: ysWebpToolsAdmin.nonce,
+                    offset: offset
+                },
+                success: function ( response ) {
+                    if ( ! response || ! response.success ) {
+                        var msg = ( response && response.data && response.data.message ) ? response.data.message : ysWebpToolsAdmin.i18n.error;
+                        showNotice( msg, 'error' );
+                        finish();
+                        return;
+                    }
+                    var d = response.data;
+                    totalDeleted += ( d.deleted || 0 );
+                    totalCreated += ( d.created || 0 );
+
+                    if ( 0 === d.total ) {
+                        $text.text( ysWebpToolsAdmin.i18n.regenEmpty );
+                        showNotice( ysWebpToolsAdmin.i18n.regenEmpty, 'success' );
+                        finish();
+                        return;
+                    }
+
+                    var pct = Math.min( 100, Math.round( ( d.processed / d.total ) * 100 ) );
+                    $fill.css( 'width', pct + '%' );
+                    $text.text( ysWebpToolsAdmin.i18n.regenProg.replace( '%1$d', d.processed ).replace( '%2$d', d.total ) );
+
+                    if ( d.done ) {
+                        var doneMsg = ysWebpToolsAdmin.i18n.regenDone
+                            .replace( '%1$d', d.processed )
+                            .replace( '%2$d', totalDeleted )
+                            .replace( '%3$d', totalCreated );
+                        $text.text( doneMsg );
+                        showNotice( doneMsg, 'success' );
+                        finish();
+                    } else {
+                        step( d.next_offset );
+                    }
+                },
+                error: function () {
+                    showNotice( ysWebpToolsAdmin.i18n.error, 'error' );
+                    finish();
+                }
+            } );
+        }
+
+        step( 0 );
+    } );
+
 } )( jQuery );

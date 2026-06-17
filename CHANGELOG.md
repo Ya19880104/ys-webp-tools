@@ -4,6 +4,16 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.0.0/)，版本號遵循 [語意化版本](https://semver.org/lang/zh-TW/)。
 
+## [1.1.0] - 2026-06-17
+
+### 新增
+- **縮圖尺寸管理：一鍵全部停用／啟用**（表頭主開關）。
+- **套用到既有圖片**：批次重新產生既有圖片縮圖（AJAX 分批 + 進度條），依目前啟用的尺寸重建，並刪除停用尺寸的舊縮圖檔。
+- **WooCommerce 引導**：偵測到 WooCommerce 時，提示並連結至 WooCommerce 內建的「重新產生縮圖」工具。
+
+### 變更
+- 文件明確說明同時支援 JPG 與 JPEG（同屬 image/jpeg）。
+
 ## [1.0.0] - 2026-06-16
 
 ### 新增
